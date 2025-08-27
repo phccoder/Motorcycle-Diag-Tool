@@ -1,83 +1,66 @@
-# Motorcycle Multi-Brand Diagnostic Tool 🏍️🔧
+# Motorcycle Diagnostic Tool 🏍️🔧
 
-A user-friendly desktop application for reading live engine data and checking trouble codes on modern Honda, Yamaha, and Suzuki motorcycles. Built with Python and Tkinter, this tool uses a standard ELM327 adapter to provide real-time diagnostics.
+A professional-grade, cross-platform desktop application for real-time motorcycle diagnostics. Built with Python and CustomTkinter, this tool provides a modern dashboard interface for monitoring live engine data and retrieving fault codes using a standard ELM327 adapter.
 
-This project features a fully functional simulator for development and testing without needing physical hardware.
+The project is architecturally sound, featuring a separation of concerns between the UI, diagnostic logic, and a full-featured simulator for hardware-free development.
 
-
+![Motorcycle Diagnostic Tool Screenshot](image_aa8570.png)
 
 ---
 
 ### ## Features
-- **Graphical User Interface:** An intuitive and easy-to-use interface built with Tkinter.
-- **Live Data Streaming:** Continuously polls and displays real-time sensor data, including:
+- **Modern Graphical User Interface:** A sleek and intuitive UI built with CustomTkinter, featuring dark/light modes and theming.
+- **Real-Time Dashboard:** Displays live data on four graphical gauges:
   - Engine Speed (RPM)
-  - Coolant Temperature
   - Vehicle Speed (KPH)
-- **Fault Code Scanning:** Reads and displays any stored Diagnostic Trouble Codes (DTCs) after the live stream is stopped.
-- **Data Logging:** Save the results of any diagnostic session to a timestamped `.txt` log file.
-- **Advanced Simulator:** Run the application in a full simulator mode, which uses a comprehensive local database of DTCs for realistic testing without any hardware.
-- **Multi-Brand Support:** Designed for use with Honda, Yamaha, and Suzuki motorcycles (requires brand-specific adapter cables).
+  - Coolant Temperature (°C)
+  - Engine Load (%)
+- **Full-Featured Diagnostics:**
+  - **Live Data Streaming:** Continuously polls the ECU for the smoothest possible gauge animation.
+  - **Fault Code Scanning:** Retrieves and displays stored Diagnostic Trouble Codes (DTCs) with descriptions.
+  - **DTC Lookup Tool:** A separate pop-up window to manually look up fault codes from a comprehensive local database.
+- **Configurable & User-Friendly:**
+  - **Settings Menu:** A dedicated settings window to easily configure the connection method (Simulator, Wi-Fi, Bluetooth) and adapter address. Settings are saved between sessions.
+  - **Data Logging:** Save the results of any diagnostic session to a timestamped `.txt` log file.
+  - **Fullscreen Mode:** Press F11 for an immersive, fullscreen dashboard view.
 
 ---
 
-### ## Hardware Requirements
-To use this tool with a real motorcycle, you will need:
-
-1.  **ELM327 V1.5 Adapter:** A high-quality **V1.5** adapter is strongly recommended. The connection type can be Wi-Fi, Bluetooth, or USB.
-2.  **Motorcycle Adapter Cables:** A set of cables to connect the 16-pin ELM327 adapter to your motorcycle's diagnostic port (e.g., Honda 4-pin, Yamaha 3/4-pin, Suzuki 6-pin).
-
----
-
-### ## Software Setup & Installation
-
-1.  **Clone the repository:**
-    ```bash
-    git clone [https://github.com/phccoder/Motorcycle-Diag-Tool.git](https://github.com/phccoder/Motorcycle-Diag-Tool.git)
-    cd Motorcycle-Diag-Tool
-    ```
-
-2.  **Create a Virtual Environment:**
-    ```bash
-    python -m venv .venv
-    .\.venv\Scripts\activate
-    ```
-
-3.  **Install the required Python libraries:**
-    ```bash
-    pip install obd
-    ```
+### ## Project Structure
+The application is organized into logical modules for maintainability and scalability:
+- **`main.py`**: The main entry point for the application.
+- **`gui_app.py`**: Contains the main `App` class and all CustomTkinter UI code.
+- **`diagnostics.py`**: Handles all communication with the OBD-II adapter.
+- **`simulator.py`**: Contains the `OBDSimulator` class for hardware-free testing.
+- **`custom_widgets.py`**: Defines the reusable `Gauge` widget.
+- **`config_manager.py`**: Manages loading and saving user settings to `settings.ini`.
+- **`dtc_codes.json`**: A local database of over 400 DTCs and their descriptions.
 
 ---
 
 ### ## How to Use
 
-#### **Simulator Mode (No Hardware Needed)**
-1.  Open the `gui_diag_tool.py` script.
-2.  Ensure the configuration switch at the top is set to `SIMULATOR_MODE = True`.
-3.  Run the script from your terminal:
-    ```powershell
-    py gui_diag_tool.py
-    ```
-4.  Click **"Connect & Stream"** to see the simulator in action.
-
-#### **Real Hardware Mode**
-1.  **Connect the Hardware:**
-    - Connect the appropriate adapter cable to your motorcycle's diagnostic port.
-    - Plug in the ELM327 adapter.
-    - Connect the adapter to your computer (Wi-Fi/Bluetooth/USB).
-    - Turn your motorcycle's ignition to **ON**.
-2.  **Configure the Script:**
-    - Open `gui_diag_tool.py`.
-    - Set `SIMULATOR_MODE = False`.
-    - If using a Wi-Fi or Bluetooth adapter, update the connection string in the code (e.g., `obd.OBD("tcp://...")` or `obd.OBD("COM3")`).
-3.  **Run the application.**
+1.  **Clone the repository** and install the required libraries (`customtkinter`, `obd`).
+2.  **Run for the first time** (`py main.py`) to generate the default `settings.ini` file.
+3.  **Configure:** Click the "Settings" button to choose your connection mode (e.g., "Simulator" or "Wi-Fi") and enter your adapter's address.
+4.  **Connect:** Click "Connect & Stream" to begin monitoring your vehicle.
 
 ---
 
-### ## Project Utilities
+### ## Final Step: Packaging the Application
 
-This repository also contains utility scripts:
+The last step is to package the application into a single `.exe` file for easy distribution.
 
--   **`create_json_from_pdf_text.py`**: A one-time script used to parse the provided PDF text data into the `dtc_codes.json` file.
--   **`dtc_simulator.py`**: A simple command-line tool to quickly test the `dtc_codes.json` file by printing random codes to the terminal.
+1.  **Install PyInstaller:**
+    ```powershell
+    pip install pyinstaller
+    ```
+2.  **Run the Build Command:** From the project's root directory, run the following command in your terminal. This command is crucial as it correctly bundles all your custom modules and data files.
+    ```powershell
+    pyinstaller --onefile --windowed --add-data "dtc_codes.json;." --add-data "settings.ini;." main.py
+    ```
+    * `--onefile`: Creates a single executable.
+    * `--windowed`: Hides the command-line console.
+    * `--add-data`: Bundles the necessary `json` and `ini` files with your application.
+
+Your final, distributable application will be in the `dist` folder. Congratulations on building a complete, professional, and highly functional piece of software!
