@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('dtc_codes.json', '.'), ('settings.ini', '.')],
+    datas=[('settings.ini', '.')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
