@@ -6,6 +6,7 @@ import time
 from diagnostics import run_diagnostics_thread
 from custom_widgets import Gauge
 from dtc_database import DTC_CODES 
+from simulator import OBDSimulator
 from config_manager import load_settings, save_settings
 
 class ToplevelSettings(customtkinter.CTkToplevel):
@@ -87,7 +88,7 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.title("Motorcycle Diagnostic Tool")
-        self.geometry("800x750")
+        self.geometry("1000x800")
         customtkinter.set_appearance_mode("dark")
         customtkinter.set_default_color_theme("green")
         
@@ -102,8 +103,9 @@ class App(customtkinter.CTk):
         
     def create_widgets(self):
         self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)
-        self.grid_rowconfigure(2, weight=1)
+        self.grid_rowconfigure(1, weight=1) # Row for gauges
+        self.grid_rowconfigure(2, weight=0) # Row for new data panel
+        self.grid_rowconfigure(3, weight=1) # Row for textbox
 
         control_frame = customtkinter.CTkFrame(self)
         control_frame.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="ew")
@@ -139,12 +141,19 @@ class App(customtkinter.CTk):
         self.load_gauge = Gauge(gauge_frame, label="ENGINE LOAD", min_value=0, max_value=100, unit="%")
         self.load_gauge.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
 
+        secondary_data_frame = customtkinter.CTkFrame(self)
+        secondary_data_frame.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
+        
+        self.secondary_data_label = customtkinter.CTkLabel(secondary_data_frame, text="Waiting for data...", font=("Consolas", 14), justify="left")
+        self.secondary_data_label.pack(padx=10, pady=10)
+
+        # --- OUTPUT TEXTBOX for logs and DTCs ---
         self.output_text = customtkinter.CTkTextbox(self, state="disabled", font=("Consolas", 12), height=150)
-        self.output_text.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
+        self.output_text.grid(row=3, column=0, padx=10, pady=5, sticky="ew")
         
         self.status_var = customtkinter.StringVar(value=f"Ready | Press F11 for Fullscreen")
         status_bar = customtkinter.CTkLabel(self, textvariable=self.status_var, anchor="w")
-        status_bar.grid(row=3, column=0, padx=10, pady=(5, 10), sticky="ew")
+        status_bar.grid(row=4, column=0, padx=10, pady=(5, 10), sticky="ew")
 
     def open_settings_window(self):
         """Opens the settings dialog."""
@@ -156,7 +165,6 @@ class App(customtkinter.CTk):
         self.connect_button.configure(state="disabled")
         self.disconnect_button.configure(state="normal")
         
-        # Reload settings right before connecting
         self.settings = load_settings()
         
         config = {
@@ -171,11 +179,15 @@ class App(customtkinter.CTk):
             'update_rpm': self.rpm_gauge.update_value,
             'update_speed': self.speed_gauge.update_value,
             'update_temp': self.temp_gauge.update_value,
-            'update_load': self.load_gauge.update_value
+            'update_load': self.load_gauge.update_value,
+            'update_secondary_data': self.update_secondary_data # New callback
         }
         
         diag_thread = threading.Thread(target=run_diagnostics_thread, args=(config, callbacks, self.stop_thread), daemon=True)
         diag_thread.start()
+
+    def update_secondary_data(self, data_string):
+        self.secondary_data_label.configure(text=data_string)
 
     def toggle_fullscreen(self, event=None):
         self.fullscreen_state = not self.fullscreen_state
