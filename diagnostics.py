@@ -58,10 +58,11 @@ def run_diagnostics_thread(config, callbacks, stop_event):
         # (DTC Scan logic remains the same)
         callbacks['output']("\n--- Live data polling stopped. ---\n", False)
         response_dtc = connection.query(obd.commands.GET_DTC)
-        if not response_dtc.is_null() and response_dtc.value:
-            callbacks['output']("🚨 Found Trouble Codes! 🚨\n", False)
-            for code, desc in response_dtc.value:
-                callbacks['output'](f"  -> {code}: {desc}\n", False)
+        dtc_list = response_dtc.value
+        
+        if not response_dtc.is_null() and dtc_list:
+            # Call the new dedicated callback with the list of found codes
+            callbacks['display_dtcs'](dtc_list)
         else:
             callbacks['output']("👍 No stored trouble codes found.\n", False)
 

@@ -3,6 +3,7 @@ import customtkinter
 from tkinter import messagebox, filedialog
 import threading
 import time
+import webbrowser
 from diagnostics import run_diagnostics_thread
 from custom_widgets import Gauge
 from dtc_database import DTC_CODES 
@@ -88,7 +89,7 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.title("Motorcycle Diagnostic Tool")
-        self.geometry("1000x800")
+        self.geometry("800x850") # Made window taller
         customtkinter.set_appearance_mode("dark")
         customtkinter.set_default_color_theme("green")
         
@@ -97,6 +98,7 @@ class App(customtkinter.CTk):
         
         self.fullscreen_state = False
         self.bind("<F11>", self.toggle_fullscreen)
+        self.dtc_widgets = [] # To keep track of DTC result widgets
 
         self.create_widgets()
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -155,6 +157,16 @@ class App(customtkinter.CTk):
         status_bar = customtkinter.CTkLabel(self, textvariable=self.status_var, anchor="w")
         status_bar.grid(row=4, column=0, padx=10, pady=(5, 10), sticky="ew")
 
+        dtc_frame_label = customtkinter.CTkLabel(self, text="Diagnostic Trouble Codes (DTCs)", font=("Arial", 14, "bold"))
+        dtc_frame_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
+        
+        self.dtc_scrollable_frame = customtkinter.CTkScrollableFrame(self, height=150)
+        self.dtc_scrollable_frame.grid(row=3, column=0, padx=10, pady=5, sticky="nsew")
+
+        self.status_var = customtkinter.StringVar(value=f"Ready | Press F11 for Fullscreen")
+        status_bar = customtkinter.CTkLabel(self, textvariable=self.status_var, anchor="w")
+        status_bar.grid(row=4, column=0, padx=10, pady=(5, 10), sticky="ew")
+
     def open_settings_window(self):
         """Opens the settings dialog."""
         self.settings = load_settings() # Re-load settings in case they were changed
@@ -180,7 +192,8 @@ class App(customtkinter.CTk):
             'update_speed': self.speed_gauge.update_value,
             'update_temp': self.temp_gauge.update_value,
             'update_load': self.load_gauge.update_value,
-            'update_secondary_data': self.update_secondary_data # New callback
+            'update_secondary_data': self.update_secondary_data,
+            'display_dtcs': self.display_dtc_results
         }
         
         diag_thread = threading.Thread(target=run_diagnostics_thread, args=(config, callbacks, self.stop_thread), daemon=True)
@@ -188,6 +201,42 @@ class App(customtkinter.CTk):
 
     def update_secondary_data(self, data_string):
         self.secondary_data_label.configure(text=data_string)
+
+    def display_dtc_results(self, dtc_list):
+        # Clear any old results first
+        for widget in self.dtc_widgets:
+            widget.destroy()
+        self.dtc_widgets = []
+
+        # Update the main log
+        self.update_output("🚨 Found Trouble Codes! 🚨\n", False)
+
+        for code, desc in dtc_list:
+            # Create a frame for each DTC
+            entry_frame = customtkinter.CTkFrame(self.dtc_scrollable_frame)
+            entry_frame.pack(fill="x", padx=5, pady=5)
+            self.dtc_widgets.append(entry_frame)
+
+            label_text = f"{code}: {desc}"
+            label = customtkinter.CTkLabel(entry_frame, text=label_text, wraplength=500, justify="left")
+            label.pack(side="left", padx=10, pady=5)
+            
+            # Create a troubleshoot button for each code
+            troubleshoot_button = customtkinter.CTkButton(
+                entry_frame,
+                text="Troubleshoot",
+                width=100,
+                # Pass the code to the command using a lambda
+                command=lambda c=code: self.open_troubleshoot_link(c)
+            )
+            troubleshoot_button.pack(side="right", padx=10, pady=5)
+
+    def open_troubleshoot_link(self, code):
+        """Opens a web browser to a specific page for the given DTC."""
+        # We'll use obd-codes.com, which has a predictable URL structure
+        url = f"https://www.obd-codes.com/{code.lower()}"
+        self.update_status(f"Opening browser for {code}...")
+        webbrowser.open_new_tab(url)
 
     def toggle_fullscreen(self, event=None):
         self.fullscreen_state = not self.fullscreen_state
