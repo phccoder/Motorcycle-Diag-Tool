@@ -5,7 +5,7 @@ import threading
 import time
 from diagnostics import run_diagnostics_thread
 from custom_widgets import Gauge
-from simulator import load_codes_from_file
+from dtc_database import DTC_CODES 
 from config_manager import load_settings, save_settings
 
 class ToplevelSettings(customtkinter.CTkToplevel):
@@ -87,19 +87,19 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.title("Motorcycle Diagnostic Tool")
-        self.geometry("1000x750")
+        self.geometry("800x750")
         customtkinter.set_appearance_mode("dark")
         customtkinter.set_default_color_theme("green")
         
         self.stop_thread = threading.Event()
-        self.settings = load_settings() # Load settings on startup
+        self.settings = load_settings()
         
         self.fullscreen_state = False
         self.bind("<F11>", self.toggle_fullscreen)
 
         self.create_widgets()
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
-
+        
     def create_widgets(self):
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
@@ -183,11 +183,11 @@ class App(customtkinter.CTk):
         return "break"
 
     def open_dtc_lookup_window(self):
-        dtc_codes = load_codes_from_file()
-        if dtc_codes:
-            ToplevelDTC(self, all_codes=dtc_codes)
+        if DTC_CODES:
+            # Pass the imported dictionary directly to the lookup window
+            ToplevelDTC(self, all_codes=DTC_CODES)
         else:
-            messagebox.showerror("Error", "DTC database (dtc_codes.json) not found or is empty.")
+            messagebox.showerror("Error", "DTC database could not be loaded.")
             
     def update_output(self, message, clear=False):
         self.output_text.configure(state="normal")

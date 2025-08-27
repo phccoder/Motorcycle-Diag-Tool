@@ -55,12 +55,12 @@ class Gauge(customtkinter.CTkFrame):
             y1 = center_y - radius * math.sin(rad)
             x2 = center_x + radius * 0.9 * math.cos(rad)
             y2 = center_y - radius * 0.9 * math.sin(rad)
-            self.canvas.create_line(x1, y1, x2, y2, fill="white", width=2)
+            self.canvas.create_line(x1, y1, x2, y2, fill="#11c900", width=2)
             if i % 2 == 0:
                 val = self.min_value + (self.max_value - self.min_value) * (i / 10)
                 x_text = center_x + radius * 0.7 * math.cos(rad)
                 y_text = center_y - radius * 0.7 * math.sin(rad)
-                self.canvas.create_text(x_text, y_text, text=f"{int(val/1000)}k" if val >= 1000 else str(int(val)), fill="white", font=("Arial", 10))
+                self.canvas.create_text(x_text, y_text, text=f"{int(val/1000)}k" if val >= 1000 else str(int(val)), fill="#11c900", font=("Arial", 10))
 
     def update_value(self, value):
         w = self.canvas.winfo_width()
@@ -78,15 +78,15 @@ class Gauge(customtkinter.CTkFrame):
         percent = (clamped_value - self.min_value) / (self.max_value - self.min_value)
         angle_extent = percent * 240
         self.canvas.create_arc(center_x - radius, center_y - radius, center_x + radius, center_y + radius,
-                               start=150, extent=-angle_extent, style="arc", width=15, outline="#1f6aa5", tags="dynamic")
+                               start=150, extent=-angle_extent, style="arc", width=15, outline="#11c900", tags="dynamic")
         
         angle = 210 - (percent * 240)
         rad = math.radians(angle)
         x_end = center_x + radius * 0.85 * math.cos(rad)
         y_end = center_y - radius * 0.85 * math.sin(rad)
-        self.canvas.create_line(center_x, center_y, x_end, y_end, fill="#1f6aa5", width=3, tags="dynamic")
-        self.canvas.create_oval(center_x - 5, center_y - 5, center_x + 5, center_y + 5, fill="#1f6aa5", outline="white", tags="dynamic")
+        self.canvas.create_line(center_x, center_y, x_end, y_end, fill="#d32d21", width=3, tags="dynamic")
+        self.canvas.create_oval(center_x - 5, center_y - 5, center_x + 5, center_y + 5, fill="#d32d21", outline="white", tags="dynamic")
         
         # FIX: Centered the text elements on the canvas
-        self.canvas.create_text(center_x, center_y - 20, text=str(int(clamped_value)), fill="white", font=("Arial", 30, "bold"), tags="dynamic")
-        self.canvas.create_text(center_x, center_y + 10, text=self.unit, fill="white", font=("Arial", 12), tags="dynamic")
+        self.canvas.create_text(center_x, center_y - 20, text=str(int(clamped_value)), fill="#11c900", font=("Arial", 30, "bold"), tags="dynamic")
+        self.canvas.create_text(center_x, center_y + 10, text=self.unit, fill="#11c900", font=("Arial", 12), tags="dynamic")
