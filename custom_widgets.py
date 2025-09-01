@@ -22,12 +22,11 @@ class Gauge(customtkinter.CTkFrame):
         self.pack_propagate(False)
 
         # --- WIDGETS ---
-        # FIX: Added highlightthickness=0 to remove the border icon
-        self.canvas = customtkinter.CTkCanvas(self, width=width, height=height-50, bg=self.cget("fg_color")[0], highlightthickness=0)
-        self.canvas.pack(pady=(10, 0)) # Pack the canvas at the top
+        self.canvas = customtkinter.CTkCanvas(self, width=width, height=height-80, highlightthickness=0)
+        self.canvas.pack(pady=(5, 0))
 
         self.label = customtkinter.CTkLabel(self, text=self.label_text, font=("Arial", 14, "bold"))
-        self.label.pack(pady=(5, 10)) # Pack the label below the canvas
+        self.label.pack(pady=0, ipady=0)
         
         # We need to wait for the window to be drawn to get accurate dimensions
         self.after(100, self.initialize_gauge)

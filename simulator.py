@@ -36,6 +36,16 @@ class OBDSimulator:
             return MockResponse(random.randint(20, 50))
         elif command.name == "CONTROL_MODULE_VOLTAGE":
             return MockResponse(round(random.uniform(12.0, 14.5), 1))
+        elif command.name == "O2_S1_WR_VOLTAGE": # O2 Sensor Voltage
+            return MockResponse(round(random.uniform(0.1, 0.9), 2))
+        elif command.name == "THROTTLE_POS": # We will reuse this for the secondary panel
+             return MockResponse(round(random.uniform(15.0, 70.0), 1))
+        elif command.name == "FUEL_LEVEL":
+            return MockResponse(round(random.uniform(20.0, 85.0), 1))
+        elif command.name == "FUEL_PRESSURE":
+            return MockResponse(random.randint(250, 450))
+        elif command.name == "BAROMETRIC_PRESSURE":
+            return MockResponse(random.randint(98, 102))
         elif command.name == "GET_DTC":
             if DTC_CODES and random.random() < 0.25:
                 num_errors = random.randint(1, 2)

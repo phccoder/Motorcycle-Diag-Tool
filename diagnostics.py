@@ -34,7 +34,12 @@ def run_diagnostics_thread(config, callbacks, stop_event):
         secondary_commands = {
             'Intake Pressure (kPa)': obd.commands.INTAKE_PRESSURE,
             'Intake Temp (°C)': obd.commands.INTAKE_TEMP,
-            'Battery Voltage (V)': obd.commands.CONTROL_MODULE_VOLTAGE
+            'Battery Voltage (V)': obd.commands.CONTROL_MODULE_VOLTAGE,
+            'Throttle Position (%)': obd.commands.THROTTLE_POS, 
+            'O2 Sensor 1 (V)': obd.commands.O2_S1_WR_VOLTAGE,
+            'Fuel Level (%)': obd.commands.FUEL_LEVEL,
+            'Fuel Pressure (kPa)': obd.commands.FUEL_PRESSURE,
+            'Barometric Pressure (kPa)': obd.commands.BAROMETRIC_PRESSURE
         }
         
         # --- CLEANED UP CONTINUOUS DATA LOOP ---

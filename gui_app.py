@@ -89,7 +89,7 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.title("Motorcycle Diagnostic Tool")
-        self.geometry("800x850") # Made window taller
+        self.geometry("1100x800") # Made window wider for the new layout
         customtkinter.set_appearance_mode("dark")
         customtkinter.set_default_color_theme("green")
         
@@ -98,19 +98,28 @@ class App(customtkinter.CTk):
         
         self.fullscreen_state = False
         self.bind("<F11>", self.toggle_fullscreen)
-        self.dtc_widgets = [] # To keep track of DTC result widgets
+        self.dtc_widgets = []
 
         self.create_widgets()
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
         
     def create_widgets(self):
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1) # Row for gauges
-        self.grid_rowconfigure(2, weight=0) # Row for new data panel
-        self.grid_rowconfigure(3, weight=1) # Row for textbox
+        """A clean, two-column layout for all main window widgets."""
+        self.status_var = customtkinter.StringVar(value=f"Ready | Press F11 for Fullscreen")
 
+        # --- FIX: Adjusted grid weights for better vertical spacing ---
+        self.grid_columnconfigure((0, 1), weight=1)
+        self.grid_rowconfigure(0, weight=0)  # Controls
+        self.grid_rowconfigure(1, weight=3)  # Main content (Gauges | Secondary Data) - MORE SPACE
+        self.grid_rowconfigure(2, weight=0)  # DTC Title
+        self.grid_rowconfigure(3, weight=2)  # DTC Frame - SOME SPACE
+        self.grid_rowconfigure(4, weight=0)  # Log Title
+        self.grid_rowconfigure(5, weight=2)  # Log Textbox - MORE SPACE
+        self.grid_rowconfigure(6, weight=0)  # Status Bar
+
+        # --- Row 0: Controls ---
         control_frame = customtkinter.CTkFrame(self)
-        control_frame.grid(row=0, column=0, padx=10, pady=(10, 5), sticky="ew")
+        control_frame.grid(row=0, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
         
         brand_label = customtkinter.CTkLabel(control_frame, text="Select Brand:")
         brand_label.pack(side="left", padx=(10, 0))
@@ -125,12 +134,12 @@ class App(customtkinter.CTk):
         save_button.pack(in_=control_frame, side="left", padx=5)
         lookup_button = customtkinter.CTkButton(self, text="DTC Lookup", command=self.open_dtc_lookup_window)
         lookup_button.pack(in_=control_frame, side="left", padx=5)
-        # --- Add the new Settings Button ---
         settings_button = customtkinter.CTkButton(self, text="Settings", command=self.open_settings_window)
         settings_button.pack(in_=control_frame, side="left", padx=5)
 
+        # --- Row 1, Column 0: Gauges ---
         gauge_frame = customtkinter.CTkFrame(self)
-        gauge_frame.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
+        gauge_frame.grid(row=1, column=0, padx=(10, 5), pady=5, sticky="nsew")
         gauge_frame.grid_columnconfigure((0, 1), weight=1)
         gauge_frame.grid_rowconfigure((0, 1), weight=1)
 
@@ -139,34 +148,34 @@ class App(customtkinter.CTk):
         self.speed_gauge = Gauge(gauge_frame, label="VEHICLE SPEED", min_value=0, max_value=120, unit="KPH")
         self.speed_gauge.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
         self.temp_gauge = Gauge(gauge_frame, label="COOLANT TEMP", min_value=0, max_value=120, unit="°C")
-        self.temp_gauge.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.temp_gauge.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
         self.load_gauge = Gauge(gauge_frame, label="ENGINE LOAD", min_value=0, max_value=100, unit="%")
-        self.load_gauge.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
+        self.load_gauge.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
 
+        # --- Row 1, Column 1: Secondary Data ---
         secondary_data_frame = customtkinter.CTkFrame(self)
-        secondary_data_frame.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
+        secondary_data_frame.grid(row=1, column=1, padx=(5, 10), pady=5, sticky="nsew")
+        self.secondary_data_label = customtkinter.CTkLabel(secondary_data_frame, text="Waiting for live data...", font=("Consolas", 16), justify="left")
+        self.secondary_data_label.pack(expand=True, padx=10, pady=15)
         
-        self.secondary_data_label = customtkinter.CTkLabel(secondary_data_frame, text="Waiting for data...", font=("Consolas", 14), justify="left")
-        self.secondary_data_label.pack(padx=10, pady=10)
-
-        # --- OUTPUT TEXTBOX for logs and DTCs ---
-        self.output_text = customtkinter.CTkTextbox(self, state="disabled", font=("Consolas", 12), height=150)
-        self.output_text.grid(row=3, column=0, padx=10, pady=5, sticky="ew")
-        
-        self.status_var = customtkinter.StringVar(value=f"Ready | Press F11 for Fullscreen")
-        status_bar = customtkinter.CTkLabel(self, textvariable=self.status_var, anchor="w")
-        status_bar.grid(row=4, column=0, padx=10, pady=(5, 10), sticky="ew")
-
+        # --- Rows below (Spanning both columns) ---
         dtc_frame_label = customtkinter.CTkLabel(self, text="Diagnostic Trouble Codes (DTCs)", font=("Arial", 14, "bold"))
-        dtc_frame_label.grid(row=2, column=0, padx=10, pady=(10, 0), sticky="w")
+        dtc_frame_label.grid(row=2, column=0, columnspan=2, padx=10, pady=(10, 0), sticky="w")
+
+        # FIX: Removed fixed height to allow dynamic resizing
+        self.dtc_scrollable_frame = customtkinter.CTkScrollableFrame(self) 
+        self.dtc_scrollable_frame.grid(row=3, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
         
-        self.dtc_scrollable_frame = customtkinter.CTkScrollableFrame(self, height=150)
-        self.dtc_scrollable_frame.grid(row=3, column=0, padx=10, pady=5, sticky="nsew")
-
-        self.status_var = customtkinter.StringVar(value=f"Ready | Press F11 for Fullscreen")
+        log_label = customtkinter.CTkLabel(self, text="Connection Log", font=("Arial", 14, "bold"))
+        log_label.grid(row=4, column=0, columnspan=2, padx=10, pady=(10, 0), sticky="w")
+        
+        # FIX: Removed fixed height to allow dynamic resizing
+        self.output_text = customtkinter.CTkTextbox(self, state="disabled", font=("Consolas", 10)) 
+        self.output_text.grid(row=5, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
+        
         status_bar = customtkinter.CTkLabel(self, textvariable=self.status_var, anchor="w")
-        status_bar.grid(row=4, column=0, padx=10, pady=(5, 10), sticky="ew")
-
+        status_bar.grid(row=6, column=0, columnspan=2, padx=10, pady=(5, 10), sticky="ew")
+        
     def open_settings_window(self):
         """Opens the settings dialog."""
         self.settings = load_settings() # Re-load settings in case they were changed
